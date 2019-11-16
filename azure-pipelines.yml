@@ -45,11 +45,6 @@ steps:
 #    pip install -r requirements.txt
 #    pip install unittest-xml-reporting
     pip install django
-<<<<<<< HEAD
-=======
-    python manage.py makemigrations
-    python manage.py migrate
->>>>>>> e1d9ba44631a4ca11bfb94509012ac032e5ab445
   displayName: 'Install prerequisites'
 
 - script: |
