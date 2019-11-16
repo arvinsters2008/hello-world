@@ -71,5 +71,5 @@ steps:
 
 - script: |
     pushd '$(projectRoot)'
-    python manage.py test selenium_test
+    python manage.py test polls
   displayName: 'Run tests'

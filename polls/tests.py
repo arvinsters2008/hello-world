@@ -1,43 +1,47 @@
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from selenium import webdriver
 import datetime
 
 from django.test import TestCase
 from django.utils import timezone
-from django.urls import reverse
 
 from .models import Question
+from django.urls import reverse
 
 
-class QuestionModelTests(TestCase):
+class SeleniumTest(StaticLiveServerTestCase):
 
-    def test_was_published_recently_with_old_question(self):
-    """
-    was_published_recently() returns False for questions whose pub_date
-    is older than 1 day.
-    """
-    time = timezone.now() - datetime.timedelta(days=1, seconds=1)
-    old_question = Question(pub_date=time)
-    self.assertIs(old_question.was_published_recently(), False)
+    def setUp(self):
+        
+        options = webdriver.ChromeOptions()
+        # Chrome:
+        myProxy = "10.0.x.x:yyyy"
+        options.add_argument('--proxy-server=%s' % myProxy )
 
-	def test_was_published_recently_with_recent_question(self):
-    """
-    was_published_recently() returns True for questions whose pub_date
-    is within the last day.
-    """
-    time = timezone.now() - datetime.timedelta(hours=23, minutes=59, seconds=59)
-    recent_question = Question(pub_date=time)
-    self.assertIs(recent_question.was_published_recently(), True)
+        options.add_argument('--disable-extensions')
+        options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--ignore-certificate-errors')
+        self.browser = webdriver.Chrome("/usr/bin/chromedriver",chrome_options=options)
+        self.browser.get("https://www.google.com")
+        print(self.browser.title)
+        self.browser.set_page_load_timeout(10)
+    #     link = "https://accounts.google.com"
+    #     self.browser.set_page_load_timeout(10)
+
+    def tearDown(self):
+        self.browser.close()
 
     def create_question(question_text, days):
-    """
-    Create a question with the given `question_text` and published the
-    given number of `days` offset to now (negative for questions published
-    in the past, positive for questions that have yet to be published).
-    """
-    time = timezone.now() + datetime.timedelta(days=days)
-    return Question.objects.create(question_text=question_text, pub_date=time)
+        """
+        Create a question with the given `question_text` and published the
+        given number of `days` offset to now (negative for questions published
+        in the past, positive for questions that have yet to be published).
+        """
+        time = timezone.now() + datetime.timedelta(days=days)
+        return Question.objects.create(question_text=question_text, pub_date=time)
 
-
-class QuestionIndexViewTests(TestCase):
     def test_no_questions(self):
         """
         If no questions exist, an appropriate message is displayed.
@@ -93,24 +97,3 @@ class QuestionIndexViewTests(TestCase):
             response.context['latest_question_list'],
             ['<Question: Past question 2.>', '<Question: Past question 1.>']
         )
-        
-class QuestionDetailViewTests(TestCase):
-    def test_future_question(self):
-        """
-        The detail view of a question with a pub_date in the future
-        returns a 404 not found.
-        """
-        future_question = create_question(question_text='Future question.', days=5)
-        url = reverse('polls:detail', args=(future_question.id,))
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 404)
-
-    def test_past_question(self):
-        """
-        The detail view of a question with a pub_date in the past
-        displays the question's text.
-        """
-        past_question = create_question(question_text='Past Question.', days=-5)
-        url = reverse('polls:detail', args=(past_question.id,))
-        response = self.client.get(url)
-        self.assertContains(response, past_question.question_text)
