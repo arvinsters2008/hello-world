@@ -46,7 +46,7 @@ steps:
 #    pip install unittest-xml-reporting
     pip install django
     python manage.py makemigrations
-    python manage migrate
+    python manage.py migrate
   displayName: 'Install prerequisites'
 
 - script: |
